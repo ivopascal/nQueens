@@ -156,6 +156,35 @@ int maxSlot(int array[MAXQ]){
 /* A very silly random search 'algorithm' */
 #define MAXITER 1000
 void randomSearch() {
+  int queen, iter = 0;
+  int optimum = (nqueens-1)*nqueens/2;
+
+  while (evaluateState() != optimum) {
+    printf("iteration %d: evaluation=%d\n", iter++, evaluateState());
+    if (iter == MAXITER) break;  /* give up */
+    /* generate a (new) random state: for each queen do ...*/
+    for (queen=0; queen < nqueens; queen++) {
+      int pos, newpos;
+      /* position (=column) of queen */
+      pos = columnOfQueen(queen);
+      /* change in random new location */
+      newpos = pos;
+      while (newpos == pos) {
+        newpos = random() % nqueens;
+      }
+      moveQueen(queen, newpos);
+    }
+  }
+  if (iter < MAXITER) {
+    printf ("Solved puzzle. ");
+  }
+  printf ("Final state is");
+  printState();
+}
+
+/*************************************************************/
+
+void hillClimbing() {
   int iter = 0;
   int optimum = (nqueens-1)*nqueens/2;
   while (evaluateState() != optimum) {
@@ -181,16 +210,42 @@ void randomSearch() {
   printState();
 }
 
-/*************************************************************/
-
-void hillClimbing() {
-  printf("Implement the routine hillClimbing() yourself!!\n");
+int temperatureProbabilityTrue(int t){
+	return 1.0/t * (random() % 1000);
 }
 
 /*************************************************************/
 
 void simulatedAnnealing() {
-  printf("Implement the routine simulatedAnnealing() yourself!!\n");
+  int iter = 0;
+  int optimum = (nqueens-1)*nqueens/2;
+  while (evaluateState() != optimum) {
+    printf("iteration %d: evaluation=%d\n", iter++, evaluateState());
+    if (iter == MAXITER) break;  /* give up */
+    
+    int newpos, pos, queen, prevEval = evaluateState();
+    /**Could cycle through queens instead?*/
+    queen = random() % nqueens; /*Pick a random queen*/
+    pos = columnOfQueen(queen);
+    newpos = random() % nqueens;
+	printf("Trying queen %d to %d\n", queen, newpos);
+	moveQueen(queen, newpos);
+	if(evaluateState() <= prevEval){
+		if(!temperatureProbabilityTrue(iter)){
+			/*If the temparturechance says to not move, put back to original position*/
+			moveQueen(queen, pos);
+		}else{
+			printf("Allowed through temperature\n");
+		}
+	}else{
+		/*Found dE > 0*/
+	}
+  }
+  if (iter < MAXITER) {
+    printf ("Solved puzzle. ");
+  }
+  printf ("Final state is");
+  printState();
 }
 
 
