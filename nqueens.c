@@ -7,6 +7,9 @@
 
 #define MAXQ 100
 
+#define MAXgenerations 1000
+#define MAXindividuals 100
+
 #define FALSE 0
 #define TRUE  1
 
@@ -30,7 +33,7 @@ void initializeRandomGenerator() {
 void initiateQueens(int flag) {
   int q;
   for (q = 0; q < nqueens; q++) {
-    queens[q] = (flag == 0? 0 : random()%nqueens); 
+    queens[q] = (flag == 0? 0 : rand()%nqueens); 
   }
 }
 
@@ -76,6 +79,7 @@ void printState() {
     printf("\n");
   }
 }
+
 
 /* move queen on row q to specified column, i.e. to (q,column) */
 void moveQueen(int queen, int column) {
@@ -132,6 +136,19 @@ int countConflicts() {
   return cnt;
 }
 
+int countConflictsArg(int ind[MAXQ]) {
+  int cnt = 0;
+  int queen, other;
+  for (queen=0; queen < nqueens; queen++) {
+    for (other=queen+1; other < nqueens; other++) {
+      if (inConflict(queen, ind[queen], other, ind[other])) {
+        cnt++;
+      }
+    }
+  }
+  return cnt;
+}
+
 /* evaluation function. The maximal number of queens in conflict
  * can be 1 + 2 + 3 + 4 + .. + (nquees-1)=(nqueens-1)*nqueens/2.
  * Since we want to do ascending local searches, the evaluation
@@ -139,6 +156,10 @@ int countConflicts() {
  */
 int evaluateState() {
   return (nqueens-1)*nqueens/2 - countConflicts();
+}
+
+int evaluateStateArg(int ind[MAXQ]) {
+  return (nqueens-1)*nqueens/2 - countConflictsArg(ind);
 }
 
 int maxSlot(int array[MAXQ]){
@@ -170,7 +191,7 @@ void randomSearch() {
       /* change in random new location */
       newpos = pos;
       while (newpos == pos) {
-        newpos = random() % nqueens;
+        newpos = rand() % nqueens;
       }
       moveQueen(queen, newpos);
     }
@@ -193,7 +214,7 @@ void hillClimbing() {
     
     int newpos, queen;
     /**Could cycle through queens instead?*/
-    queen = random() % nqueens; /*Pick a random queen*/
+    queen = rand() % nqueens; /*Pick a random queen*/
     int newScores[MAXQ];
    
 	for(newpos = 0; newpos < nqueens; newpos ++){
@@ -211,7 +232,7 @@ void hillClimbing() {
 }
 
 int temperatureProbabilityTrue(int t){
-	return 1.0/t * (random() % 1000);
+	return 1.0/t * (rand() % 1000);
 }
 
 /*************************************************************/
@@ -225,9 +246,9 @@ void simulatedAnnealing() {
     
     int newpos, pos, queen, prevEval = evaluateState();
     /**Could cycle through queens instead?*/
-    queen = random() % nqueens; /*Pick a random queen*/
+    queen = rand() % nqueens; /*Pick a random queen*/
     pos = columnOfQueen(queen);
-    newpos = random() % nqueens;
+    newpos = rand() % nqueens;
 	printf("Trying queen %d to %d\n", queen, newpos);
 	moveQueen(queen, newpos);
 	if(evaluateState() <= prevEval){
@@ -247,7 +268,102 @@ void simulatedAnnealing() {
   printf ("Final state is");
   printState();
 }
+//////////////////////////////////////////////////////////////////////
 
+int pickRandom(){
+	for (int i = 0; i<MAXindividuals; i++){
+		if ((MAXindividuals - i) / 3 > (rand()%MAXindividuals)/2){
+			return i;
+		}
+	}
+	return MAXindividuals;
+}
+
+void newIndividual(int gen[MAXindividuals][MAXQ], int son1[MAXQ], int son2[MAXQ]){
+	////////crossover - cutting the parents at a random point and sticking together///////////////
+	int father = pickRandom();
+	int mother;
+	do{
+		mother = pickRandom();
+	}while(mother ==father);
+	//printf("father is %d mother is %d\n", father, mother);
+	
+	int pos;
+	for (pos = 0; pos<father; pos++){
+		son1[pos] = gen[father][pos];
+		son2[pos] = gen[mother][pos];
+	}
+	for (pos; pos<MAXQ; pos++){
+		son1[pos] = gen[mother][pos];
+		son2[pos] = gen[father][pos];
+	}
+	///////mutation - swapping a the column for one row///////////////
+	son1[rand()%nqueens] = rand()%nqueens;
+	son2[rand()%nqueens] = rand()%nqueens;
+
+}
+
+void insertInOrder(int evaluations[MAXindividuals], int gen[MAXindividuals][MAXQ], int ind[MAXQ], int size){
+	int eval = evaluateStateArg(ind);
+	int i;
+	for (i = 0; i<size; i++){
+		if(eval > evaluations [i]){
+			for (int h = size; h >= i; h--){		// found place, shift everything by 1;
+				evaluations[h] = evaluations[h-1];
+				for (int j = 0; j < nqueens; j++){
+					gen[h][j] = gen [h-1][j];
+				}
+			}
+			break;
+		}
+	}
+	
+	for(int x = 0; x<nqueens; x++){
+		gen[i][x] = ind[x];
+	}
+	evaluations[i] = eval;
+	return;
+}
+
+void geneticAlgorithm(){
+	int generations = 0;
+	int optimum = (nqueens-1)*nqueens/2;
+	
+	printf("optimum is %d\n", optimum);
+	
+	int newGen[MAXindividuals][MAXQ];
+	int currentGen[MAXindividuals][MAXQ];
+	int evaluations[MAXindividuals];
+	int son1[MAXQ];
+	int son2[MAXQ];
+	
+	while (evaluateState() != optimum) {
+		printf("generation %d: evaluation=%d\n", generations++, evaluateState());
+		if (generations >= MAXgenerations) break;  /* give up */
+		
+		
+		for (int g = 0; g < MAXindividuals; g+=2){
+			newIndividual(currentGen, son1, son2);
+			insertInOrder(evaluations, newGen, son1, g);
+			insertInOrder(evaluations, newGen, son2, g+1);
+		}
+		for (int i = 0; i < nqueens; i++){
+			queens[i] = newGen[0][i];		// copy the best solution to the main solution array for checking and printing
+		}		
+		for (int ind = 0; ind<MAXindividuals; ind++){	//updating the current generation to the new one
+			for (int pos = 0; pos < nqueens; pos++){
+				currentGen[ind][pos] = newGen[ind][pos];
+			}
+		}
+		
+	  }
+	  if (generations < MAXgenerations) {
+		printf ("Solved puzzle. ");
+	  }
+	  printf ("Final state is");
+	  printState();
+
+}
 
 int main(int argc, char *argv[]) {
   int algorithm;
@@ -259,9 +375,9 @@ int main(int argc, char *argv[]) {
 
   do {
     printf ("Algorithm: (1) Random search  (2) Hill climbing  ");
-    printf ("(3) Simulated Annealing: ");
+    printf ("(3) Simulated Annealing (4) Genetic Algorithm");
     scanf ("%d", &algorithm);
-  } while ((algorithm < 1) || (algorithm > 3));
+  } while ((algorithm < 1) || (algorithm > 4));
   
   initializeRandomGenerator();
 
@@ -274,6 +390,7 @@ int main(int argc, char *argv[]) {
   case 1: randomSearch();       break;
   case 2: hillClimbing();       break;
   case 3: simulatedAnnealing(); break;
+  case 4: geneticAlgorithm();	break;
   }
 
   return 0;  
