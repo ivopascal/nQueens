@@ -7,7 +7,7 @@
 
 #define MAXQ 100
 
-#define MAXgenerations 1000
+#define MAXgenerations 10000
 #define MAXindividuals 100
 
 #define FALSE 0
