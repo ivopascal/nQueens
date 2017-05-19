@@ -82,7 +82,7 @@ Because there are a lot of local optima for larger number of queens, so it's eas
 We find that our genetic algorithm works best. It will often find a solution very quickly, even for very large boards. Moreover, the implementation is far more interesting. We find that for large numbers of queens even the genetic algorithm can get stuck in local optima. We could also add a random restart function to this, but we feel that this is excessive and that this would not appreciate the beauty of the genetic algorithm.
 
 
-\section*{Programming} 
+\section*{Programming nQueens} 
 %The programming part follows the same template used during ADinC and Imperative Programming
 \subsection*{Program description}
 The program solves the nQueens problem with several search algorithms to find a solution. The nQueens problem is the problem where nQueens have to be placed on an n by n chessboard where none of the queens can threaten each other.
@@ -131,5 +131,31 @@ The genetic algorithm however works very efficiently for this problem: even for 
 %copy code files into listings using the \begin{listing} command as follows:
 \subsubsection*{nQueens.c}
 \lstinputlisting{nqueens.c}
+
+\section*{Programming Nim} 
+%The programming part follows the same template used during ADinC and Imperative Programming
+\subsection*{Program description}
+The task was to implement an effective solution for the game of nim. This is the game, where the players can pick 1,2, or 3 matchsticks from a set, and whoever picks the last one loses. The solution is based on the minimax algorithm, that calculates the final outcomes for all possible moves, and chooses the optimal one.\\
+For example for 3 or 4 matsticks, the starting player has a direct option to win the game, taking 2 and 3 sticks, and force the other player to take the last one. These branches would be evaluated for 1, and the minimax would choose these branches.\\
+On the other hand, for 5 sticks no matter what the first player does, the second has an option to win (3->1, 2->2, 1->3), so all branches would worth -1, and the starting player looses in all cases. For 6 sticks however, the starter has an option to reduce the state to 5, forcing the second player to loose, as they would be in the situation described above. In this case, the move 1 would lead to the value 1, and the other moves would lead to the value -1, so the move 1 would be chosen.
+\subsection*{Problem analysis}
+A version of minimax algorithm for the problem was given, but it was using separate min and max functions, and double function calls with one returning the value of the minimax, and the other returning the move. Our task was to implement a negamax function for the problem, that returns both. The task was also to implement a transposition table, that stores the optimal choice for players at states, so there would br no need to calculate the same moves over and over again. This is especially useful in this game, since many paths lead to repeating states, and both players are playing optimally, so they would take the path that was calculated during the first step.
+
+\subsection*{Program design}
+To solve the problem of different return types, we introduced a new struct called Choice, that contains both the value and the move. We defined our negaMax function to return this type. The negaMax is based on minimaxDecision, but it makes the difference between MAX and MIN turns with the turn value, which is 1 (MAX) or -1 (MIN). Whenever a calculation takes place, the correct variables are multiplied by the turn variable (f.e.: the return value is initially infinity, and it is always checked if smaller than turn times the returned value from the recursive call), and the return value at leafs also depends on the turn variable. Whenever the negaMax is called recursively, the turn value is multiplied by -1, to suit the calcuations for the player in the next turn. With this recursive function, returning a Choice we could also avoid to use two different functions in different depths, like minimaxDecision and minValue in the original solution, because every step and value can be calcuated with a simple recursive call. We also implemented a simple user input to choose between the classic (original) and the negaMax vesion, to make the comparison easier. The classic solution was not change at all. \\
+Before implementing the transposition table, we also included two minor modifications for the negamax algorithm, that are really simple, but make the program a lot more effective than the original solution. The first was to evaluate the moves in decreasing order: this way, if there are branches with the same value, the biggest step is chosen, resulting in a shorter sequence and faster solution time. The second was to stop looking for other branches if an optimal value (e.g.1 for MAX) has already been found. This is possible, since there are no difference between branch ends, just the value 1 and -1.\\
+The transposition table was designed to store the values for MAX and MIN for the states that have already been evaluated. The implementation is a matrix of Choice structs, that has one dimension for the states (sticks left), and a dimension for the player. (MAX or MIN). In the beginning of every negaMax call, the table is checked, if a value exists for the state and player. If not, the choice is calculated and stored. At the end the function retrieves the value from the table (no matter it is newly stored or not). The table has 101 states, because the state numbering starts from 1, and not from 0, as it is in an array, so a state of 100 sticks needs a [100] index.
+\subsection*{Program evaluation}
+When using the classic version, or the negamax version before the efficiency enhancements were implemented, the program fast for sets of 10 and 20, but it slowed down for states above 30, for states around 40 or more it was too slow for us to wait for an output. It was also interesting to see how the exponential growth of branches shows in this task: for the state of 35 for example, the first step takes a long time, the second takes a lot shorter, but still noticable, and the rest is calculated within a second.\\
+After implementing the two tricks, but before the transposition table the efficiency improved significantly: the program was able to calculate the output up to 80 sticks in a couple of seconds. The output showed a different sequence then in the classic method, because of the order changing, but that is not a problem, since there are multiple optimal paths for winning.
+The transposition table gave an other significant improvement for the program: after the implementation the program was able to produce the correct output for even the maximal 100 matchsticks within a second, the set of 50 sticks meant no problem for a very fast output.
+
+\subsection*{Program output}
+The program outputs the sequence of steps for the best outcome for MAX, the first player. For all cases where the starting state is not 5 the game is winnable for MAX. Moreover, the program prints the shortest optimal path for MAX, taking the most sticks whenever multiple equally good solutions are possible. For the negaMax solution it also prints out the evaluation of the taken path.
+
+\subsection*{Program files}
+%copy code files into listings using the \begin{listing} command as follows:
+\subsubsection*{nim.c}
+\lstinputlisting{./nim.c}
 
 \end{document}
