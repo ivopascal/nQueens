@@ -249,6 +249,7 @@ void hillClimbing() {
     printf ("Solved puzzle. ");
   }
   printf ("Final state is");
+  printState();
   printf("Restarted %d times\n", restartCount);
 }
 
@@ -263,7 +264,7 @@ int temperatureProbabilityTrue(float time, float dE, char *method){
 		thresh = pow(e,(dE/time));
 	}
 	
-	printf("Theshold at %f, pow at %f\n", thresh,dE/time);
+	printf("Theshold at %f\n", thresh);
 	float randNum = (float)random() / RAND_MAX;
 	printf("Rand %f\n", randNum);
 	if(randNum <= thresh){
