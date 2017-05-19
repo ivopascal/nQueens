@@ -27,9 +27,9 @@
   tabsize=3
 }
 
-\title{Artificial Intelligence 1 \\ Lab 1}%Update the lab (assignment number)
-\author{Name1 (student number 1) \& Name2 (student number 2) \\ Group name} %Change the names and fill in the student numbers and the group name (AI1/AI2/CS1 etc)
-\date{day-month-year}%Update the date
+\title{Artificial Intelligence 1 \\ Lab 2}%Update the lab (assignment number)
+\author{Bálint Hompot (s3177963) \& Ivo de Jong (s3174034) \\ AI1} %Change the names and fill in the student numbers and the group name (AI1/AI2/CS1 etc)
+\date{19-05-2017}%Update the date
 
 \begin{document}
 
@@ -39,32 +39,75 @@
 \subsection*{Exercise 1}
 %Your answers for the theoretical questions go here
 
-\paragraph
+
 \textit{Run the algorithm several times, using different numbers of queens. Does the algorithm usually solve the problem?}
+
 The perfomance is best for lower number of queens, starting from 4, which is the minimal number where a solution is possible. As the number of queens increases, so does the number of local optima, which decreases the chance of finding a solution.
 
-\paragraph
+
 \textit{In which situations does the algorithm not solve the problem. What can you do to improve the algorithm? Implement your suggestions for improvement.} 
+
 The algorithm fails whenever the program gets stuck in a local optimum. A simple improvement to this could be random restart hill climbing, where on every iteration there is a chance for the computer to generate a random new begin state. We found that for 8 queens an optimum is usually found in less than 30 iteration. We'll make the chance fitting for this. We decided on a chance $p = 0.5$, which we found was decent through testing, and would go roughly one restart every 30 iterations. The performance on this is far better, as it's more like running 30 HillClimbs from different locations, and only one of them has to find a result.
 
-\paragraph
+
 \textit{Make a table and/or plot showing the success rate versus number of queens of your modified code}
 %INSERT PLOT
 
 The result shows that the performance is optimal for lower numbers. It should be noted that the percentage were determined on 100 tries per number of queens, so they are not entirely accurate, but they give a good indication.
 
+\includegraphics[scale=0.2]{./HillClimbGraph.png}
+
 \subsection*{Exercise 2}
 %Your answers for the theoretical questions go here
+
+
+\textit{Define a suitable formula for the temperature as a function of time}
+
+We decided that it would be best to distinguish between a linear function on time and a logarithmic one, as a logarithmic function is considerably better. The implemented logartihmic formula is $1.15^(dE / log(t))$, and the linear formula is $70^(dE/t)$. $dE$ represents the deviation the step makes, and $t$ represents the number of the iteration, ranging from 1 to 999.
+
+
+\textit{ Run the algorithm using varying start temperatures and number of queens. Does the algorithm (often/always) return a solution? What settings should be chosen for which problem size?}
+
+The algorithm is not very effective, as it seems to perform only slightly better than the original hill climb. This may be due to the probability functions being sub-optimal. We are seeing the general trend of allowing more mistakes at early iterations, but the plotting seems suboptimal. We know from the hillclimbing algorithm that there are many more local optima for larger number of queens, this means that more bad solutions should be allowed. This can be done by simpy increasing the constant in the formula, which is also a simple constant in the program.
+
+\textit{Probably, your program does not work very well for problem sizes with more than 10 queens. Why is that? Try to modify your code, such that it also works for larger problem sizes. You may use any trick/heuristic that you can come up with, as long as the search remains a local search.}
+
+Because there are a lot of local optima for larger number of queens, so it's easier to get stuck in the wrong optima. An easy fix would be to do random-restart hillclimbing. This should be done with a different formula from hill climbing, as there are more iterations for simulated annealing. Since simulated annealing needs more iterations we decided to not limit ourselves to the 1000 iterations given. This is also very doable as we don't consider as many possible states. We increase the number of iterations and decrease the chance to restart per iteration compared to hill climbing. The MAXITER is multiplied by 10 and the chance of restarting randomly is $\%1$.
+
+\subsection*{Exercise 3}
+
+
+\textit{Which of the three methods (Hill climbing, simulated annealing, and genetic algorithms) works best for the N-queens problem (for varying values of N)?}
+
+We find that our genetic algorithm works best. It will often find a solution very quickly, even for very large boards. Moreover, the implementation is far more interesting. We find that for large numbers of queens even the genetic algorithm can get stuck in local optima. We could also add a random restart function to this, but we feel that this is excessive and that this would not appreciate the beauty of the genetic algorithm.
 
 
 \section*{Programming} 
 %The programming part follows the same template used during ADinC and Imperative Programming
 \subsection*{Program description}
-The program also implements a genetic algorithm approach for solving the problem. This takes a set of solution alternatives, and generates new generations of alternatives with breeding and mutating the previous generation until a solution is found.
+The program solves the nQueens problem with several search algorithms to find a solution. The nQueens problem is the problem where nQueens have to be placed on an n by n chessboard where none of the queens can threaten each other.
+The performance is defined by $ (nqueens-1)*nqueens/2 -nConflicts$. This allows for an optimal performance $(nqueens-1)*nqueens/2$, where none of the queens are threatening eachother. This performance definition will be used in the problem solving algorithms.
+
+The first approach is the \verb!randomSearch! function, which generates a starting states and randomly shifts around queens. Needless to say the algorithm hardly ever finds a solution and is hardly usefull beyond academic value.
+
+The second approach is the \verb!hillClimbing! function, which works similar to the \verb!randomSearch!, but will pick the best solution to move a queen to. This way the performance will always be increasing. This has been expanded with the option to random restart, to improve performance.
+
+The third approach is the \verb!simulatedAnnealing! function, which also works similar to the \verb!randomSearch!, but will only let through bad moves with a chance p, based on the iteration and how bad the move is. Later iterations will have a smaller chance, and the worse the move, the smaller the chance. The weigth of the iteration can be done lineanly or logarithmically. This function also has an option to randomly restart.
+
+The last approach implements a genetic algorithm approach for solving the problem. This takes a set of solution alternatives, and generates new generations of alternatives with breeding and mutating the previous generation until a solution is found.
 \subsection*{Problem analysis}
 
+The nQueen problem is defined as having a chessboard of n by n and placing n queens on it, where none of the queens can threaten eachother. There can be no possible solutions for $n<4$, and there are increasingly many solutions as n increases. The common version of this is the problem where $n=8$. It can be known that each column will only have one queen, which somewhat simplifies the problem. This gives that for 8 queens there are $8! = 40320$ tries to be done to generate every solution. (This has the implicaiton where 2 queens can't be on the same row either.) This is already quite a few, but it's not hard to see that as n increases, the amount of solutions increases exponetially. The general approach our functions use is randomly generating a state with 1 queen per column, and making movements where the performance is improved. The performance decreases as more queens threaten eachother. This way the program could find an optimal solution in just a few steps. However, there are a lot of \textit{local optima} where the performance is not optimal, but the performance can't be improved by moving only one piece. This is where randomly restarting allows the program to search for another optimum. The genetic algortithm and simulated annealing allow for taking steps back with chance to still find the optimal solution. 
 
 \subsection*{Program design}
+We will not go into the program design for the \verb!randomSearch! function as it is not our work and it is too simple.
+
+The queens are represented in an array of size $n$, where each slot in the array contains an integer to represent in which row the queen is. This is easier for some of the operation and doesn't allocate unnecessary memory. The given program gives this as a global, and the function to calculate the performance is therefore also applied to this global array.
+
+For hill climbing a random queen is picked and iteratively moved to every other row. The performance is measured after each movement and placed in an array where the index defines the row, and the value gives the performance. This has te be done in this way since the performance function only operates on the global array. After this, the index with the best performance is chosen and the queen is moved to this location. This way very few iterations have to be made to find a local optimum. To battle the problem of getting stuck in a local optimum we added a random restart option, where on every iteration there is a $\%5$ chance of restarting with a random state. Over the 1000 given iterations it will generally restart about 30-50 times, which significantly improves performance. 
+
+The simulated annealing is done similarly to the hill climbing, except the program does not find the best row for a queen, but choses a random row. If the new state is better the program reiterates. If the new state is worse a function of chance is called. This function gives a chance to keep the queen or move it back. The probability for this is $1.15^(dE / log(t))$, or $70^(dE/t)$. Here dE represents the deviation from the previous state and t the iteration. Either formula can be chosen by the operator to find whether a linear or logarithmic approach is better. We chose for different constants to compensate for the effect that the log operation has on the chance. These were taken from the math library as they are elemetary. For the simulated annealing we also implemented an option to randomly restart, but with a much smaller chance of $\%1$, as the simulated annealing needs more small iterations to reach an optimum. To accomodate for this the maximum number of iterations is also multiplied by 10. The iterations take less processing $O(1)$ than the hill climbing does $O(n)$, so it is justified.
+
 The genetic algorithm introduces new variables: an individual looks like the global nqueens array, but this time we need several of this kind. Therefore we introduce two arrays for storing the current and the next generation, both containing 100 individuals. We also introduced a simple int array for storing the individual fitness values for inserting them in order. This could have been done with defining a generation struct as well. We also introduced son1 and son2 variables, to use them when generating new individuals.\\
 The algorithm works as follows: it generates two sons from the current generation, and inserts them in order of their fitness (number of conflicts) to the next generation array, until it is filled with 100 individual, which seemed an optimal number in our runs. For that an insertInOrder function was defined, that inserts the son to the correct place and shifts everything after that (a heap could be used, but not crucial in this task), and a conflict counter, which is the same as the one used for the other solutions, but it takes an individual as an argument, instead of the global nqueens individual. Then the current array is updated to the next, the global individual is updated to the best from the next generation, and the loop starts again, until a solution is found, or the generation limit is extended.
 Generating the new individualsrelies on the function newIndividual. It takes the current generation, and the son arrays, because the generated individuals will be stored in them. Since the genom of an indiviual is a column number for each row, the genom could be easily cut an any point, and stuck together for the new individuals to create a valid son. This is the method we used for crossover. The parents are chosen randomly, with the ones in the beginning having a greater chance to be chosen: the index of the individual is subtracted from the population size, divided by 3, and then checked if it is greater than a random number between 0 and the population size divided by 2. This method gives a linearly decreasing probability, that is not too steeply decreasing, and does not start from a too high chance for the best individiuals. The two parents must be different individuals.
@@ -72,6 +115,13 @@ We also implemented a simple mutation method: since swapping the value of a row 
 
 
 \subsection*{Program evaluation}
+The program takes very little memory because it uses local search. The computations needed also isn't very much as it doesn't scale exponentially like brute force would. Because the program doesn't dynamically allocate memory we won't include a valgrind report, as there can't be any leaks.
+
+The hill climbing allocates memory in order O(n), but since this is limited in the input, the memory is simply allocated as maximal. The processing is in order $O(n^2)$, as every column for a queen is considered and processed. This is never too much as the n is limited to 100. On the other hand, the program does not always find a solution. This is of course the most limiting factor for this program. A graph of this can be found below. The graph shows that it can (almost) always find a solution for smaller number of queens, but when there are too many queens it won't find a solution within the number of iterations. If the number of iterations is removed it will always find a limit, but this can take a very long, which is why we did keep it limited.
+\includegraphics[scale=0.2]{./HillClimbGraph.png}
+
+The simulated annealing doesn't allocate the memory like in hill climbing, as it only takes single steps. The processing is in order $O(n)$, which comes from the function to identify the performance, however it ultimately does take more processing as the maximum number of iterations is multiplied by 10. The simulated annealing is more likely to find a solution than the hill climbing, but it still has issues when then number of queens is larger. It works better than hill climbing both with and without random restart. The logarithmic formula appears to perform slightly better than the linear one, but the difference is slim. 
+
 The genetic algorithm however works very efficiently for this problem: even for bigger table sizes, like 20 - 40 it is able to find the solution normally in a couple hundred generations. For smaller sizes it usually find in less than 100 generations. Even for states between 40 and 65 the solution is found in a couple of thousand generations. Above that, the solution becomes really complex, and the program seems to get stuck with local optima: this could be prevented by higher mutation ratio, or more chance for the less fit individuals to breed, but that could lower the effectivness for smaller tables.
 
 \subsection*{Program output}
@@ -79,14 +129,7 @@ The genetic algorithm however works very efficiently for this problem: even for 
 
 \subsection*{Program files}
 %copy code files into listings using the \begin{listing} command as follows:
-\subsubsection*{Main.c}
-\begin{lstlisting}
-Your code here
-\end{lstlisting}
-
-\subsubsection*{SomeFile.c}
-\begin{lstlisting}
-Some other code here
-\end{lstlisting}
+\subsubsection*{nQueens.c}
+\lstinputlisting{nqueens.c}
 
 \end{document}
