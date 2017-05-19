@@ -39,6 +39,14 @@
 \subsection*{Exercise 1}
 %Your answers for the theoretical questions go here
 
+\paragraph
+\textit{Run the algorithm several times, using different numbers of queens. Does the algorithm usually solve the problem?}
+The perfomance is best for lower number of queens, starting from 4, which is the minimal number where a solution is possible. As the number of queens increases, so does the number of local optima, which decreases the chance of finding a solution.
+
+\paragraph
+\textit{In which situations does the algorithm not solve the problem. What can you do to improve the algorithm? Implement your suggestions for improvement.} 
+The algorithm fails whenever the program gets stuck in a local optimum. A simple improvement to this could be random restart hill climbing, where on every iteration there is a chance for the computer to generate a random new begin state. We found that for 8 queens an optimum is usually found in less than 30 iteration. We'll make the chance fitting for this. We decided on a chance $p = 0.5$, which we found was decent through testing, and would go roughly one restart every 30 iterations. The performance on this is far better, as it's more like running 30 HillClimbs from different locations, and only one of them has to find a result.
+
 \subsection*{Exercise 2}
 %Your answers for the theoretical questions go here
 

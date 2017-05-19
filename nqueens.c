@@ -204,14 +204,34 @@ void randomSearch() {
 }
 
 /*************************************************************/
-
+int randomRestartChance(){
+	int treshold = 950;
+	if(random() % 1000 > treshold){
+		
+		return 1;
+	}
+	return 0;
+	
+}
 void hillClimbing() {
   int iter = 0;
   int optimum = (nqueens-1)*nqueens/2;
+  printf("Do you want to use random restart? <Y|N>\n");
+  int ranRest = 0;
+  int restartCount=0;
+  char c;
+  do{
+	  c = getchar();
+  }while(c != 'y' && c != 'n' && c!= 'Y' && c!= 'N');
+  if(c == 'Y' || c == 'y')
+	ranRest = 1;
   while (evaluateState() != optimum) {
     printf("iteration %d: evaluation=%d\n", iter++, evaluateState());
     if (iter == MAXITER) break;  /* give up */
-    
+    if (ranRest && randomRestartChance()){
+		restartCount++;
+		initiateQueens(1); /*This places every queen on a random position*/
+	}
     int newpos, queen;
     /**Could cycle through queens instead?*/
     queen = rand() % nqueens; /*Pick a random queen*/
@@ -229,6 +249,7 @@ void hillClimbing() {
   }
   printf ("Final state is");
   printState();
+  printf("Restarted %d times\n", restartCount);
 }
 
 int temperatureProbabilityTrue(int t){
@@ -375,7 +396,7 @@ int main(int argc, char *argv[]) {
 
   do {
     printf ("Algorithm: (1) Random search  (2) Hill climbing  ");
-    printf ("(3) Simulated Annealing (4) Genetic Algorithm");
+    printf ("(3) Simulated Annealing (4) Genetic Algorithm\n");
     scanf ("%d", &algorithm);
   } while ((algorithm < 1) || (algorithm > 4));
   
