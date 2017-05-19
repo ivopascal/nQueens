@@ -1,0 +1,14 @@
+Stats RandomRestart HillClimb
+All answers are in %, will try 2log runs.
+2. 0
+4. 100
+8. 100
+12. 68
+14. 53
+15. 34
+16. 37
+20. 15
+25. 10
+32. 3
+64. 0
+Beyond 64 measurement was halted as the computations were too heavy

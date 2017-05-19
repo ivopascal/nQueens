@@ -214,6 +214,7 @@ int randomRestartChance(){
 	
 }
 void hillClimbing() {
+  initiateQueens(1);
   int iter = 0;
   int optimum = (nqueens-1)*nqueens/2;
   printf("Do you want to use random restart? <Y|N>\n");
@@ -223,7 +224,7 @@ void hillClimbing() {
   do{
 	  c = getchar();
   }while(c != 'y' && c != 'n' && c!= 'Y' && c!= 'N');
-  if(c == 'Y' || c == 'y')
+  if(c == 'Y' || c == 'y')*/
 	ranRest = 1;
   while (evaluateState() != optimum) {
     printf("iteration %d: evaluation=%d\n", iter++, evaluateState());
@@ -248,12 +249,27 @@ void hillClimbing() {
     printf ("Solved puzzle. ");
   }
   printf ("Final state is");
-  printState();
   printf("Restarted %d times\n", restartCount);
 }
 
-int temperatureProbabilityTrue(int t){
-	return 1.0/t * (rand() % 1000);
+int temperatureProbabilityTrue(float time, float dE, char *method){
+	float thresh;
+	float e;
+	if(!strcmp(method, "log")){
+		e = 1.15;
+		thresh = pow(e,(dE/log(time)));
+	}else{
+		e = 70;
+		thresh = pow(e,(dE/time));
+	}
+	
+	printf("Theshold at %f, pow at %f\n", thresh,dE/time);
+	float randNum = (float)random() / RAND_MAX;
+	printf("Rand %f\n", randNum);
+	if(randNum <= thresh){
+		return 0;
+	} return 1;
+	
 }
 
 /*************************************************************/
@@ -261,23 +277,38 @@ int temperatureProbabilityTrue(int t){
 void simulatedAnnealing() {
   int iter = 0;
   int optimum = (nqueens-1)*nqueens/2;
+  char method[4];
+  do{
+	printf("Give a method for calculating the possibilitz=y of randomness <log|lin>\n");
+	scanf("%s", method);
+  }while (strcmp(method, "lin") && strcmp(method, "log"));
   while (evaluateState() != optimum) {
     printf("iteration %d: evaluation=%d\n", iter++, evaluateState());
     if (iter == MAXITER) break;  /* give up */
     
     int newpos, pos, queen, prevEval = evaluateState();
     /**Could cycle through queens instead?*/
-    queen = rand() % nqueens; /*Pick a random queen*/
-    pos = columnOfQueen(queen);
-    newpos = rand() % nqueens;
+    /**IF HAVENT IMPROVED FOR A WHILE, RESTART*/
+	queen = random() % nqueens; /*Pick a random queen*/
+	pos = columnOfQueen(queen);
+	newpos = random() % nqueens;
 	printf("Trying queen %d to %d\n", queen, newpos);
 	moveQueen(queen, newpos);
-	if(evaluateState() <= prevEval){
-		if(!temperatureProbabilityTrue(iter)){
+	}
+	if(evaluateState() < prevEval){
+		if(!temperatureProbabilityTrue(iter, (float)(evaluateState() - prevEval), method)){
 			/*If the temparturechance says to not move, put back to original position*/
-			moveQueen(queen, pos);
+			if(swap){
+				printf("Swapping back ---\n");
+				int h = queens[otherqueen];
+				moveQueen(otherqueen, queens[queen]);
+				moveQueen(queen, queens[h]);
+			} else{
+				moveQueen(queen, pos);
+			}
 		}else{
-			printf("Allowed through temperature\n");
+			allowTemp++;
+			printf("Allowed through temperature, %dth time\n", allowTemp);
 		}
 	}else{
 		/*Found dE > 0*/
@@ -388,7 +419,7 @@ void geneticAlgorithm(){
 
 int main(int argc, char *argv[]) {
   int algorithm;
-
+  
   do {
     printf ("Number of queens (1<=nqueens<%d): ", MAXQ);
     scanf ("%d", &nqueens);

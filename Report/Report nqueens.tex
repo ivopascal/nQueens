@@ -47,6 +47,12 @@ The perfomance is best for lower number of queens, starting from 4, which is the
 \textit{In which situations does the algorithm not solve the problem. What can you do to improve the algorithm? Implement your suggestions for improvement.} 
 The algorithm fails whenever the program gets stuck in a local optimum. A simple improvement to this could be random restart hill climbing, where on every iteration there is a chance for the computer to generate a random new begin state. We found that for 8 queens an optimum is usually found in less than 30 iteration. We'll make the chance fitting for this. We decided on a chance $p = 0.5$, which we found was decent through testing, and would go roughly one restart every 30 iterations. The performance on this is far better, as it's more like running 30 HillClimbs from different locations, and only one of them has to find a result.
 
+\paragraph
+\textit{Make a table and/or plot showing the success rate versus number of queens of your modified code}
+%INSERT PLOT
+
+The result shows that the performance is optimal for lower numbers. It should be noted that the percentage were determined on 100 tries per number of queens, so they are not entirely accurate, but they give a good indication.
+
 \subsection*{Exercise 2}
 %Your answers for the theoretical questions go here
 
